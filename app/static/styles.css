@@ -788,3 +788,49 @@ body::before {
     animation: none;
   }
 }
+
+/* ---------- Search History ---------- */
+
+.history-panel{
+    margin-bottom:20px;
+    background:var(--bg-panel);
+    border:1px solid var(--border-dim);
+    border-radius:6px;
+    padding:14px;
+}
+
+.history-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+    font-family:var(--font-mono);
+    font-size:.8rem;
+}
+
+#clear-history{
+    background:none;
+    border:none;
+    color:var(--accent);
+    cursor:pointer;
+}
+
+#history-list{
+    list-style:none;
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+}
+
+.history-item{
+    padding:6px 12px;
+    background:var(--bg-panel-alt);
+    border:1px solid var(--border-dim);
+    border-radius:5px;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.history-item:hover{
+    border-color:var(--accent);
+}
