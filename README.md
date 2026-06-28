@@ -129,7 +129,7 @@ Athena/
 | ------------------ | ----------------------- | ----------------------------------- |
 | `OLLAMA_BASE_URL`  | `http://localhost:11434`| Ollama server URL                   |
 | `LLM_MODEL`        | `llama3.2:1b`           | Ollama model name                   |
-| `LLM_TEMPERATURE`  | `0.3`                   | LLM sampling temperature            |
+| `LLM_TEMPERATURE`  | `0.1`                   | LLM sampling temperature            |
 
 ## Features
 
