@@ -14,6 +14,8 @@
 
   <!-- Marked.js — Markdown rendering -->
   <script src="https://cdn.jsdelivr.net/npm/marked@15/marked.min.js" defer></script>
+  <!-- jsPDF — PDF generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
   <link rel="stylesheet" href="/static/styles.css" />
 </head>
@@ -179,13 +181,22 @@
       </section>
 
     </div>
-    <div class="execution-time" id="execution-time">
-    Execution Time: --
-    </div>
-    <div class="download-section">
-    <button id="download-txt" class="download-btn">
-        Download Report (TXT)
-    </button>
+    <!-- ── Dashboard Actions ─────────────────────────────── -->
+    <div class="dashboard-actions">
+      <div class="execution-time" id="execution-time">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <span>Execution Time: --</span>
+      </div>
+      <button id="download-pdf" class="btn-execute">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>
+        </svg>
+        Download Report (PDF)
+      </button>
     </div>
 
     <!-- ── Footer ────────────────────────────────────────── -->

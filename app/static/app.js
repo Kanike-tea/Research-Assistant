@@ -26,7 +26,9 @@
     statusText:   document.getElementById('status-text'),
     themeBtn:     document.getElementById('theme-toggle'),
     executionTime: document.getElementById("execution-time"),
-    downloadBtn: document.getElementById("download-txt"),
+    downloadBtn: document.getElementById("download-pdf"),
+    historyList: document.getElementById("history-list"),
+    clearHistory: document.getElementById("clear-history"),
   };
 
   // ── Theme Management ──────────────────────────────────────────
@@ -70,6 +72,76 @@
   // ── State ─────────────────────────────────────────────────────
   let completed = 0;
   let currentReport = {};
+
+  // ── Search History ─────────────────────────────
+
+  let searchHistory = JSON.parse(localStorage.getItem("searchHistory")) || [];
+
+  function renderHistory() {
+    dom.historyList.innerHTML = "";
+
+    searchHistory.forEach((topic, index) => {
+      const li = document.createElement("li");
+      li.className = "history-item";
+      
+      const textSpan = document.createElement("span");
+      textSpan.textContent = topic;
+      textSpan.className = "history-text";
+      
+      const delBtn = document.createElement("button");
+      delBtn.innerHTML = "&times;";
+      delBtn.className = "history-del-btn";
+      delBtn.setAttribute("aria-label", "Delete " + topic);
+      
+      li.appendChild(textSpan);
+      li.appendChild(delBtn);
+
+      textSpan.addEventListener("click", () => {
+        dom.input.value = topic;
+      });
+
+      delBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        deleteHistoryItem(index);
+      });
+
+      dom.historyList.appendChild(li);
+    });
+  }
+
+  function deleteHistoryItem(index) {
+    searchHistory.splice(index, 1);
+    localStorage.setItem("searchHistory", JSON.stringify(searchHistory));
+    renderHistory();
+  }
+
+  function saveHistory(topic) {
+    if (!topic) return;
+
+    // Remove duplicate
+    searchHistory = searchHistory.filter(t => t !== topic);
+
+    // Add newest at top
+    searchHistory.unshift(topic);
+
+    // Keep only last 10
+    searchHistory = searchHistory.slice(0, 10);
+
+    localStorage.setItem(
+      "searchHistory",
+      JSON.stringify(searchHistory)
+    );
+
+    renderHistory();
+  }
+
+  dom.clearHistory.addEventListener('click', () => {
+    searchHistory = [];
+    localStorage.removeItem("searchHistory");
+    renderHistory();
+  });
+
+  renderHistory();
 
   // ── Panel State Machine ───────────────────────────────────────
   function setPanelState(channel, state) {
@@ -317,34 +389,53 @@
     }
   });
 
-// ── Download TXT Report ─────────────────────────────────────
+// ── Download PDF Report ─────────────────────────────────────
 dom.downloadBtn.addEventListener("click", () => {
+  if (!window.jspdf) {
+    alert("PDF library is not loaded. Please wait a moment.");
+    return;
+  }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  let y = 15;
+  const margin = 15;
+  const pageHeight = doc.internal.pageSize.height || 297;
+  const maxWidth = 180;
 
-  const report = `
-Research Report
+  function addText(text, fontSize, isBold) {
+    doc.setFont("helvetica", isBold ? "bold" : "normal");
+    doc.setFontSize(fontSize);
+    const lines = doc.splitTextToSize(String(text || "N/A"), maxWidth);
+    for (let i = 0; i < lines.length; i++) {
+      if (y > pageHeight - margin) {
+        doc.addPage();
+        doc.setFont("helvetica", isBold ? "bold" : "normal");
+        doc.setFontSize(fontSize);
+        y = margin;
+      }
+      doc.text(lines[i], margin, y);
+      y += fontSize * 0.4;
+    }
+    y += 4;
+  }
 
-Category:
-${currentReport.category || ""}
+  addText("Research Report", 18, true);
+  y += 4;
+  
+  addText("Category:", 12, true);
+  addText(currentReport.category, 10, false);
+  
+  addText("Summary:", 12, true);
+  addText(currentReport.summary, 10, false);
+  
+  addText("Keywords:", 12, true);
+  const keywords = Array.isArray(currentReport.keywords) ? currentReport.keywords.join(", ") : "N/A";
+  addText(keywords, 10, false);
+  
+  addText("Explanation:", 12, true);
+  addText(currentReport.explanation, 10, false);
 
-Summary:
-${currentReport.summary || ""}
-
-Keywords:
-${Array.isArray(currentReport.keywords) ? currentReport.keywords.join(", ") : ""}
-
-Explanation:
-${currentReport.explanation || ""}
-`;
-
-  const blob = new Blob([report], { type: "text/plain" });
-
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = "research_report.txt";
-
-  link.click();
-
-  URL.revokeObjectURL(link.href);
+  doc.save("research_report.pdf");
 });
   // ── Utility ───────────────────────────────────────────────────
   function esc(str) {
