@@ -1,4 +1,9 @@
-"""Application configuration loaded from environment variables."""
+"""
+Central configuration for the Research Assistant.
+
+This module loads all application settings from the .env file
+using Pydantic BaseSettings.
+"""
 
 from __future__ import annotations
 

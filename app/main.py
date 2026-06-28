@@ -14,6 +14,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.chains import run_research, stream_research
 from app.models import ResearchRequest, ResearchResponse
+from app.metrics import metrics
 
 # ── Logging ──────────────────────────────────────────────────────────────────
 
@@ -35,6 +36,13 @@ app = FastAPI(
     ),
     version="2.0.0",
 )
+@app.on_event("startup")
+async def startup_event():
+    logger.info("Research Assistant API started successfully.")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    logger.info("Research Assistant API stopped.")
 
 # CORS – allow all origins during development
 app.add_middleware(
@@ -51,8 +59,20 @@ app.add_middleware(
 @app.get("/health", tags=["meta"])
 async def health_check():
     """Simple liveness probe."""
-    return {"status": "ok"}
 
+    logger.info("Health check endpoint called.")
+
+    return {
+        "status": "ok",
+        "service": "Research Assistant API",
+        "version": app.version,
+    }
+
+@app.get("/metrics", tags=["meta"])
+async def get_metrics():
+    """Return application metrics."""
+    logger.info("Metrics endpoint called.")
+    return metrics.get_metrics()
 
 # ── Main research endpoint (batch) ─────────────────────────────────────────
 
@@ -75,6 +95,7 @@ async def research(request: ResearchRequest) -> ResearchResponse:
     try:
         result = await run_research(request.topic)
     except Exception as exc:
+        metrics.record_failure()
         logger.exception("LLM pipeline failed for topic %r", request.topic)
         raise HTTPException(
             status_code=502,
@@ -82,6 +103,13 @@ async def research(request: ResearchRequest) -> ResearchResponse:
         ) from exc
 
     elapsed = time.perf_counter() - start
+    metrics.record_success(elapsed)
+    if elapsed > 5:
+        logger.warning(
+            "Slow research request detected: %.2f seconds for topic %r",
+            elapsed,
+            request.topic,
+        )
     logger.info(
         "✅ Research complete — topic: %r, keywords: %d, time: %.2fs",
         request.topic,
@@ -121,6 +149,7 @@ async def research_stream(request: ResearchRequest):
             error_payload = json.dumps({"error": str(exc)})
             yield f"event: error\ndata: {error_payload}\n\n"
             logger.exception("SSE stream failed for topic %r", request.topic)
+            metrics.record_failure()
 
     return StreamingResponse(
         event_generator(),
@@ -141,6 +170,7 @@ _STATIC_DIR = Path(__file__).resolve().parent / "static"
 @app.get("/", include_in_schema=False)
 async def serve_frontend():
     """Serve the single-page frontend application."""
+    logger.info("Serving frontend index.html")
     return FileResponse(_STATIC_DIR / "index.html")
 
 
