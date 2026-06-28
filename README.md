@@ -143,7 +143,7 @@ Athena/
 - Downloadable research reports (PDF)
 - Automatic summary generation
 - Keyword extraction
-- Topic categorization
+- Topic categorisation
 - Interactive Swagger API documentation
 
 ## Future Enhancements
@@ -156,5 +156,4 @@ Athena/
 
 ## Video Demo
 
-![Demo placeholder](https://via.placeholder.com/800x450.png?text=Athena+Demo+Video+Here)
-*(Add a link or GIF of Athena in action here!)*
+![Athena Demo](https://github.com/user-attachments/assets/73fce60a-bd65-445f-9c05-7c71dfc71877)
