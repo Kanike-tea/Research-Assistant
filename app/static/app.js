@@ -78,14 +78,37 @@
     searchHistory.forEach((topic, index) => {
       const li = document.createElement("li");
       li.className = "history-item";
-      li.textContent = topic;
+      
+      const textSpan = document.createElement("span");
+      textSpan.textContent = topic;
+      textSpan.className = "history-text";
+      
+      const delBtn = document.createElement("button");
+      delBtn.innerHTML = "&times;";
+      delBtn.className = "history-del-btn";
+      delBtn.setAttribute("aria-label", "Delete " + topic);
+      
+      li.appendChild(textSpan);
+      li.appendChild(delBtn);
 
-      li.addEventListener("click", () => {
+      textSpan.addEventListener("click", () => {
         dom.input.value = topic;
+      });
+
+      delBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        deleteHistoryItem(index);
       });
 
       dom.historyList.appendChild(li);
     });
+  }
+
+  function deleteHistoryItem(index) {
+    searchHistory.splice(index, 1);
+    localStorage.setItem("searchHistory", JSON.stringify(searchHistory));
+    historyIndex = -1;
+    renderHistory();
   }
 
   function saveHistory(topic) {

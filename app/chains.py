@@ -116,9 +116,9 @@ def parse_keywords(raw: str) -> list[str]:
     # Fallback: split on commas or newlines
     separators = "," if "," in text else "\n"
     return [
-        k.strip().strip('"').strip("'").lstrip("- ")
+        k.strip(" \t\n\r\"'[]-")
         for k in text.split(separators)
-        if k.strip()
+        if k.strip(" \t\n\r\"'[]-")
     ]
 
 
