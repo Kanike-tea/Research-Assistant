@@ -3,6 +3,13 @@
 from __future__ import annotations
 
 from langchain_core.prompts import ChatPromptTemplate
+COMMON_RESEARCH_GUIDELINES = """
+General Guidelines:
+- Provide factually accurate information.
+- If unsure, avoid making up facts.
+- Keep the response clear, structured, and concise.
+- Use consistent terminology.
+"""
 
 
 # ── Explanation chain prompt ─────────────────────────────────────────────────
@@ -11,7 +18,9 @@ EXPLANATION_PROMPT = ChatPromptTemplate.from_messages(
     [
         (
             "system",
-            "You are a senior research analyst who writes thorough, well-structured "
+            COMMON_RESEARCH_GUIDELINES
+            + "\n\n"
+            + "You are a senior research analyst who writes thorough, well-structured"
             "explanations. Your output MUST be formatted in **Markdown** with clear "
             "headings (##), bullet points, and bold key terms. Cover the following "
             "aspects when relevant:\n"
@@ -20,7 +29,7 @@ EXPLANATION_PROMPT = ChatPromptTemplate.from_messages(
             "- Key principles and mechanisms\n"
             "- Real-world applications and significance\n"
             "- Current trends and future outlook\n\n"
-            "Write at an advanced-undergraduate level. Be precise yet accessible.",
+            +"Write at an advanced-undergraduate level. Be precise yet accessible."
         ),
         (
             "human",

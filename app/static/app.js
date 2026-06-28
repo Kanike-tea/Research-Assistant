@@ -283,6 +283,7 @@
     e.preventDefault();
 
     const topic = dom.input.value.trim();
+    saveHistory(topic);
     if (!topic) return;
 
     hideError();
@@ -351,5 +352,41 @@ ${currentReport.explanation || ""}
     d.textContent = String(str);
     return d.innerHTML;
   }
+  dom.clearHistory.addEventListener("click", () => {
+    searchHistory = [];
+    localStorage.removeItem("searchHistory");
+    renderHistory();
+  });
 
+  let historyIndex = -1;
+
+  dom.input.addEventListener("keydown", (e) => {
+
+      if (searchHistory.length === 0) return;
+
+      if (e.key === "ArrowUp") {
+
+          e.preventDefault();
+
+          if (historyIndex < searchHistory.length - 1) {
+              historyIndex++;
+          }
+
+          dom.input.value = searchHistory[historyIndex];
+      }
+
+      if (e.key === "ArrowDown") {
+
+          e.preventDefault();
+
+          if (historyIndex > 0) {
+              historyIndex--;
+              dom.input.value = searchHistory[historyIndex];
+          } else {
+              historyIndex = -1;
+              dom.input.value = "";
+          }
+      }
+
+  });
 })();

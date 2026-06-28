@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import logging
+import time
 from typing import Any, AsyncGenerator
 
 from langchain_core.output_parsers import StrOutputParser
@@ -30,36 +31,47 @@ logger = logging.getLogger(__name__)
 
 def _build_llm() -> ChatOllama:
     """Create a configured LLM instance."""
+    logger.info(
+    "Initializing ChatOllama model: %s",
+    settings.LLM_MODEL,
+    )
     return ChatOllama(
         model=settings.LLM_MODEL,
         temperature=settings.LLM_TEMPERATURE,
         base_url=settings.OLLAMA_BASE_URL,
     )
+_llm = _build_llm()
 
 
 # ── Individual chains ───────────────────────────────────────────────────────
 
 _str_parser = StrOutputParser()
+def _build_chain(prompt):
+    """
+    Generic LangChain pipeline:
+    Prompt -> ChatOllama -> Output Parser
+    """
+    return prompt | _llm | _str_parser
 
 
 def _build_explanation_chain():
     """Chain that produces a Markdown explanation."""
-    return EXPLANATION_PROMPT | _build_llm() | _str_parser
+    return _build_chain(EXPLANATION_PROMPT)
 
 
 def _build_summary_chain():
     """Chain that produces a short summary."""
-    return SUMMARY_PROMPT | _build_llm() | _str_parser
+    return _build_chain(SUMMARY_PROMPT)
 
 
 def _build_keywords_chain():
     """Chain that returns a raw JSON-array string of keywords."""
-    return KEYWORDS_PROMPT | _build_llm() | _str_parser
+    return _build_chain(KEYWORDS_PROMPT)
 
 
 def _build_category_chain():
     """Chain that returns a single category label."""
-    return CATEGORY_PROMPT | _build_llm() | _str_parser
+    return _build_chain(CATEGORY_PROMPT)
 
 
 # ── Parallel pipeline ───────────────────────────────────────────────────────
@@ -104,9 +116,9 @@ def parse_keywords(raw: str) -> list[str]:
     # Fallback: split on commas or newlines
     separators = "," if "," in text else "\n"
     return [
-        k.strip().strip('"').strip("'").lstrip("- ")
+        k.strip(" \t\n\r\"'[]-")
         for k in text.split(separators)
-        if k.strip()
+        if k.strip(" \t\n\r\"'[]-")
     ]
 
 
@@ -114,9 +126,28 @@ async def run_research(topic: str) -> dict[str, Any]:
     """Execute the full research pipeline for the given *topic*.
 
     Returns a dict ready to be serialised into a ``ResearchResponse``.
+
     """
+    topic = topic.strip()
+
+    if not topic:
+        raise ValueError("Topic cannot be empty.")
+    start_time = time.perf_counter()
+
+    logger.info("Starting research pipeline for topic: %s", topic)
     pipeline = build_research_pipeline()
-    raw_results: dict[str, str] = await pipeline.ainvoke({"topic": topic})
+    logger.info("Research pipeline created successfully.")
+    try:
+        raw_results: dict[str, str] = await pipeline.ainvoke({"topic": topic})
+    except Exception:
+        logger.exception("Research pipeline execution failed.")
+        raise
+    elapsed = time.perf_counter() - start_time
+
+    logger.info(
+    "Research pipeline completed in %.2f seconds",
+    elapsed,
+    )
 
     return {
         "topic": topic,
@@ -145,6 +176,10 @@ async def stream_research(topic: str) -> AsyncGenerator[tuple[str, Any], None]:
     Server-Sent Events on the API layer.
     """
     import asyncio
+    logger.info(
+    "Starting streaming research pipeline for topic: %s",
+    topic,
+    )
 
     chains: dict[str, Any] = {
         "summary": _build_summary_chain(),
@@ -177,4 +212,9 @@ async def stream_research(topic: str) -> AsyncGenerator[tuple[str, Any], None]:
             continue
         finished_task._yielded = True  # type: ignore[attr-defined]
         key = task_to_key[finished_task]
-        yield (key, _postprocess(key, result))
+        processed_result = _postprocess(key, result)
+
+        logger.info("%s chain completed successfully.", key)
+
+        yield (key, processed_result)
+    logger.info("Streaming research pipeline completed successfully.")
