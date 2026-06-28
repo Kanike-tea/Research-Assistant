@@ -1,6 +1,6 @@
 # Research Assistant
 
-A FastAPI backend service powered by **LangChain** and **Local AI via Ollama (Llama 3.2)** that takes a topic string and produces four distinct outputs **in parallel**. The results are streamed to a high-density analytical dashboard via Server-Sent Events (SSE).
+A FastAPI backend service powered by **LangChain** and **Local AI via Ollama (Llama 3.2:1b)** that takes a topic string and produces four distinct outputs **in parallel**. The results are streamed to a high-density, glassmorphic analytical dashboard via Server-Sent Events (SSE).
 
 | Output          | Description                                      | Format         |
 | --------------- | ------------------------------------------------ | -------------- |
@@ -52,7 +52,7 @@ pip install -r requirements.txt
 ```bash
 cp .env.example .env
 # Make sure Ollama is installed and running, then pull the model:
-ollama pull llama3.2
+ollama pull llama3.2:1b
 ```
 
 ### 3. Run
@@ -128,19 +128,28 @@ Research-Assistant/
 | Variable           | Default                 | Description                         |
 | ------------------ | ----------------------- | ----------------------------------- |
 | `OLLAMA_BASE_URL`  | `http://localhost:11434`| Ollama server URL                   |
-| `LLM_MODEL`        | `llama3.2`              | Ollama model name                   |
+| `LLM_MODEL`        | `llama3.2:1b`           | Ollama model name                   |
 | `LLM_TEMPERATURE`  | `0.3`                   | LLM sampling temperature            |
 
-##  Features
+## Features
 
 - FastAPI backend with asynchronous processing
--  Local AI integration using Ollama (Llama 3.2)
+- Local AI integration using Ollama (Llama 3.2:1b)
 - Parallel execution using AsyncIO
--  Real-time streaming using Server-Sent Events (SSE)
--  Automatic summary generation
+- Real-time streaming using Server-Sent Events (SSE)
+- High-density, glassmorphic UI dashboard with dark mode
+- Execution time tracking and LangChain API metrics
+- Local search history sidebar with delete functionality
+- Downloadable research reports (PDF)
+- Automatic summary generation
 - Keyword extraction
--  Topic categorization
--  Interactive Swagger API documentation
+- Topic categorization
+- Interactive Swagger API documentation
 
- Future Enhancements - Authentication and user accounts - Research history - PDF export - Multiple LLM support - Citation generation - Dark mode - Docker deployment - Cloud deployment
+## Future Enhancements
 
+- Authentication and user accounts
+- Multiple LLM support
+- Citation generation
+- Docker deployment
+- Cloud deployment
