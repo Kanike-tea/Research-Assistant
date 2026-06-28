@@ -71,10 +71,33 @@ Open `http://localhost:8000/` in your browser to access the analytical dashboard
 | ------ | ------------------ | ----------------------------------------- |
 | GET    | `/`                | Serves the frontend dashboard             |
 | GET    | `/health`          | Liveness probe                            |
+| GET    | `/metrics`         | API usage metrics and performance statistics|
 | POST   | `/research/stream` | Stream research results via SSE           |
 | POST   | `/research`        | Batch analyse a topic (legacy compatible) |
 | GET    | `/docs`            | Interactive Swagger UI                    |
 | GET    | `/redoc`           | Alternative API documentation             |
+
+## Metrics Endpoint
+
+The `/metrics` endpoint provides runtime statistics for monitoring the backend API.
+
+### Response Example
+
+```json
+{
+  "total_requests": 15,
+  "successful_requests": 14,
+  "failed_requests": 1,
+  "average_response_time": 2.45
+}
+```
+
+### Metrics Collected
+
+- Total API requests
+- Successful requests
+- Failed requests
+- Average response time (seconds)
 
 ### `POST /research/stream`
 
@@ -116,6 +139,7 @@ Research-Assistant/
 |   +-- models.py       # Pydantic request/response schemas
 |   +-- prompts.py      # ChatPromptTemplates for each chain
 |   +-- chains.py       # LangChain chains + asyncio stream generator
+|   +-- metrics.py      # API metrics collection and monitoring
 |   +-- main.py         # FastAPI application & endpoints
 +-- .env.example        # Environment variable template
 +-- .gitignore
@@ -129,4 +153,12 @@ Research-Assistant/
 | ------------------ | ----------------------- | ----------------------------------- |
 | `OLLAMA_BASE_URL`  | `http://localhost:11434`| Ollama server URL                   |
 | `LLM_MODEL`        | `llama3.2`              | Ollama model name                   |
-| `LLM_TEMPERATURE`  | `0.3`                   | LLM sampling temperature            |
+| `LLM_TEMPERATURE`  | `0.1` | LLM sampling temperature |
+## Recent Backend Improvements
+
+- Refactored LangChain chain creation using a reusable helper function.
+- Reused a single ChatOllama instance across all chains.
+- Added structured logging and execution timing.
+- Improved request validation and exception handling.
+- Added API metrics collection.
+- Introduced a new `/metrics` endpoint for monitoring backend performance.
